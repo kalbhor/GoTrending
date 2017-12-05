@@ -81,7 +81,7 @@ func (t *Trending) Get() []Repo {
 
 		pathSplit := strings.Split(repoPath, "/") // Split repoPath into the owner and name of repo
 
-		repo.URL = MainEndpoint + repoURL // Eg : github.com/ + kalbhor/gotrending
+		repo.URL = MainEndpoint + repoPath // Eg : github.com/ + kalbhor/gotrending
 		repo.Owner = pathSplit[0]
 		repo.Name = pathSplit[1]
 		repo.Stars, err = strconv.Atoi(stars) // Convert stars to an int
