@@ -19,9 +19,9 @@ const (
 )
 
 type Trending struct {
-	Lang  string
+	lang  string
 	Repos []Repo
-	Since string
+	since string
 }
 
 type Repo struct {
@@ -31,40 +31,23 @@ type Repo struct {
 	Stars int
 }
 
-func (r *Repo) Print() {
-	fmt.Println("URL : ", r.URL)
-	fmt.Println("Owner : ", r.Owner)
-	fmt.Println("Repo Name : ", r.Name)
-	fmt.Println("Stars : ", r.Stars)
-}
-
 func NewTrending() *Trending {
-	t := &Trending{Lang: "", Since: Today}
+	t := &Trending{lang: "", since: Today}
 	return t
 }
 
-func getRepoPath(s *goquery.Selection) (string, error) {
-	repoPath := s.Find("h3 a").Text()
-	repoPath = strings.Replace(repoPath, "\n", "", -1)
-	repoPath = strings.Replace(repoPath, " ", "", -1)
-
-	return repoPath, nil
+func (t *Trending) SetLang(lang string) {
+	t.lang = lang
+}
+func (t *Trending) SetSince(since string) {
+	t.since = since
 }
 
-func getRepoStars(s *goquery.Selection) (string, error) {
-	stars := s.Find("div.f6 a").First().Text()
-	stars = strings.Replace(stars, "\n", "", -1)
-	stars = strings.Replace(stars, " ", "", -1)
-	stars = strings.Replace(stars, ",", "", -1)
-
-	return stars, nil
-}
-
-func (t *Trending) Run() []Repo {
+func (t *Trending) Get() []Repo {
 	var repos []Repo
 	var repo Repo
 
-	query := TrendingEndpoint + t.Lang + "/?since=" + t.Since
+	query := TrendingEndpoint + t.lang + "/?since=" + t.since
 
 	doc, err := goquery.NewDocument(query)
 	if err != nil {
@@ -94,6 +77,31 @@ func (t *Trending) Run() []Repo {
 		repos = append(repos, repo)
 	})
 
+	t.Repos = repos
 	return repos
 
+}
+
+func getRepoPath(s *goquery.Selection) (string, error) {
+	repoPath := s.Find("h3 a").Text()
+	repoPath = strings.Replace(repoPath, "\n", "", -1)
+	repoPath = strings.Replace(repoPath, " ", "", -1)
+
+	return repoPath, nil
+}
+
+func getRepoStars(s *goquery.Selection) (string, error) {
+	stars := s.Find("div.f6 a").First().Text()
+	stars = strings.Replace(stars, "\n", "", -1)
+	stars = strings.Replace(stars, " ", "", -1)
+	stars = strings.Replace(stars, ",", "", -1)
+
+	return stars, nil
+}
+
+func (r *Repo) Print() {
+	fmt.Println("URL : ", r.URL)
+	fmt.Println("Owner : ", r.Owner)
+	fmt.Println("Repo Name : ", r.Name)
+	fmt.Println("Stars : ", r.Stars)
 }
