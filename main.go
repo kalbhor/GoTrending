@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/google/go-github/github"
@@ -24,16 +25,46 @@ func main() {
 	tr := trending.NewTrending()
 	tr.SetLang("go")
 
-	repos := tr.Get()
+	repos, err := tr.Get()
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
 	/* To do : accept and handle errors */
 	for _, repo := range repos {
-		isStarred, _, _ := client.Activity.IsStarred(ctx, repo.Owner, repo.Name)
-		if !isStarred {
-			_, _ = client.Activity.Star(ctx, repo.Owner, repo.Name)
+		if _, ok := err.(*github.RateLimitError); ok {
+			log.Println("Hit rate limit")
+			break
 		}
-		isFollowing, _, _ := client.Users.IsFollowing(ctx, "", repo.Owner)
+
+		isStarred, _, err := client.Activity.IsStarred(ctx, repo.Owner, repo.Name)
+		if err != nil {
+			log.Printf("%v\n", err)
+			break
+		}
+
+		if !isStarred {
+			_, err = client.Activity.Star(ctx, repo.Owner, repo.Name)
+			if err != nil {
+				log.Printf("%v\n", err)
+				break
+			}
+
+		}
+
+		isFollowing, _, err := client.Users.IsFollowing(ctx, "", repo.Owner)
+		if err != nil {
+			log.Printf("%v\n", err)
+			break
+		}
+
 		if !isFollowing {
-			_, _ = client.Users.Follow(ctx, repo.Owner)
+			_, err = client.Users.Follow(ctx, repo.Owner)
+			if err != nil {
+				log.Printf("%v\n", err)
+				break
+			}
+
 		}
 	}
 
