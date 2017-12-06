@@ -2,6 +2,7 @@ package trending
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -64,7 +65,9 @@ func (t *Trending) Get() ([]Repo, error) {
 
 	doc, err := goquery.NewDocument(query)
 	if err != nil {
-		return repos, err
+		errMessage := fmt.Sprintf("Goquery error : %v", err)
+
+		return repos, errors.New(errMessage)
 	}
 
 	doc.Find("ol.repo-list li").Each(func(i int, s *goquery.Selection) {

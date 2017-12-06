@@ -39,30 +39,30 @@ func main() {
 
 		isStarred, _, err := client.Activity.IsStarred(ctx, repo.Owner, repo.Name)
 		if err != nil {
-			log.Printf("%v\n", err)
-			break
+			log.Printf("isStarred error (%v) : %v\n", repo.URL, err)
+			continue
 		}
 
 		if !isStarred {
 			_, err = client.Activity.Star(ctx, repo.Owner, repo.Name)
 			if err != nil {
-				log.Printf("%v\n", err)
-				break
+				log.Printf("Starring error (%v) : %v\n", repo.URL, err)
+				continue
 			}
 
 		}
 
 		isFollowing, _, err := client.Users.IsFollowing(ctx, "", repo.Owner)
 		if err != nil {
-			log.Printf("%v\n", err)
-			break
+			log.Printf("isFollowing error (%v) : %v\n", repo.URL, err)
+			continue
 		}
 
 		if !isFollowing {
 			_, err = client.Users.Follow(ctx, repo.Owner)
 			if err != nil {
-				log.Printf("%v\n", err)
-				break
+				log.Printf("Following error (%v) : %v\n", repo.URL, err)
+				continue
 			}
 
 		}
