@@ -2,7 +2,6 @@ package trending
 
 import (
 	"errors"
-	"log"
 	"strconv"
 	"strings"
 
@@ -57,7 +56,7 @@ func (t *Trending) SetSince(since string) error {
 
 // Run scrapes github.com/trending to get trending repos.
 // Returns a slice of repo with trending repos.
-func (t *Trending) Get() []Repo {
+func (t *Trending) Get() ([]Repo, error) {
 	var repos []Repo
 	var repo Repo
 
@@ -65,56 +64,46 @@ func (t *Trending) Get() []Repo {
 
 	doc, err := goquery.NewDocument(query)
 	if err != nil {
-		log.Printf("%v\n", err)
+		return repos, err
 	}
 
 	doc.Find("ol.repo-list li").Each(func(i int, s *goquery.Selection) {
-		repoPath, err := getRepoPath(s) // Eg : kalbhor/gotrending
-		if err != nil {
-			log.Printf("%v\n", err)
-		}
-
-		stars, err := getRepoStars(s)
-		if err != nil {
-			log.Printf("%v\n", err)
-		}
+		repoPath := getRepoPath(s) // Eg : kalbhor/gotrending
+		stars := getRepoStars(s)
 
 		pathSplit := strings.Split(repoPath, "/") // Split repoPath into the owner and name of repo
 
 		repo.URL = MainEndpoint + repoPath // Eg : github.com/ + kalbhor/gotrending
 		repo.Owner = pathSplit[0]
 		repo.Name = pathSplit[1]
-		repo.Stars, err = strconv.Atoi(stars) // Convert stars to an int
-		if err != nil {
-			log.Printf("%v\n", err)
-		}
-		repos = append(repos, repo) // Append trending repo to repos
+		repo.Stars, _ = strconv.Atoi(stars) // Convert stars to an int
+		repos = append(repos, repo)         // Append trending repo to repos
 	})
 
 	t.Repos = repos
-	return repos
+	return repos, nil
 
 }
 
 /* To do : check if path is valid, return error */
 
 // Parses html to get the repo's path
-func getRepoPath(s *goquery.Selection) (string, error) {
+func getRepoPath(s *goquery.Selection) string {
 	repoPath := s.Find("h3 a").Text()
 	repoPath = strings.Replace(repoPath, "\n", "", -1)
 	repoPath = strings.Replace(repoPath, " ", "", -1)
 
-	return repoPath, nil
+	return repoPath
 }
 
 /* To do : check if stars is valid, return error */
 
 // Parses html to get number of stars
-func getRepoStars(s *goquery.Selection) (string, error) {
+func getRepoStars(s *goquery.Selection) string {
 	stars := s.Find("div.f6 a").First().Text()
 	stars = strings.Replace(stars, "\n", "", -1)
 	stars = strings.Replace(stars, " ", "", -1)
 	stars = strings.Replace(stars, ",", "", -1)
 
-	return stars, nil
+	return stars
 }
